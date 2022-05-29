@@ -1,4 +1,7 @@
 # Powwy
+[![codebeat badge](https://codebeat.co/badges/a4a12b24-98e6-4627-b01c-8b124561f2e1)](https://codebeat.co/projects/github-com-robotomize-powwy-main)
+[![Build status](https://github.com/robotomize/powwy/actions/workflows/release.yml/badge.svg)](https://github.com/robotomize/powwy/actions)
+[![GitHub license](https://img.shields.io/github/license/robotomize/powwy.svg)](https://github.com/robotomize/powwy/blob/master/LICENSE)
 
 A toy implementation of a tcp server with its own simple text protocol with content protection from ddos attacks using
 proof of work.
