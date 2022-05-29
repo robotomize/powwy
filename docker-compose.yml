@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  powwy:
+    build:
+      context: .
+      dockerfile: docker/server.Dockerfile
+    environment:
+      ADDR: "0.0.0.0:3333"
+      NETWORK: tcp
+      HASH_CASH_DIFFICULT: 5
+      HASH_CASH_EXPIRED_DURATION: 10m
+      GRACEFUL_CONN_CLOSE_DEADLINE: 5s
+    ports:
+      - "3333:3333"
+    restart: always
+
+  powwy-cli:
+    build:
+      context: .
+      dockerfile: docker/client.Dockerfile
+    command: -w 2 -a powwy:3333 -s
+    depends_on:
+      - powwy
+

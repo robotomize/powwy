@@ -1,0 +1,45 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - id: powwy-cli
+    main: ./cmd/powwy-cli
+    binary: powwy-cli
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+    goos:
+      - freebsd
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w -X main.version={{.Version}} -extldflags '-static'
+
+  - id: powwy-srv
+    main: ./cmd/powwy-srv
+    binary: powwy-server
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w -X main.version={{.Version}} -extldflags '-static'
+
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  github:
+    owner: robotomize
+    name: powwy
