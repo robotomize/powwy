@@ -21,8 +21,8 @@ The client receives the problem, solves it, and receives a quote from Words of w
 Install from local go toolkit [Go 1.18](https://go.dev/dl/)
 
 ```sh
-    go install ./cmd/powwy-srv
-    go install ./cmd/powwy-cli
+go install ./cmd/powwy-srv
+go install ./cmd/powwy-cli
     
 ```
 
@@ -35,8 +35,8 @@ make build
 Docker install
 
 ```sh
-    sudo docker build -it powwly-cli -f -f ./docker/client.Dockerfile .
-    sudo docker build -it powwly -f -f ./docker/server.Dockerfile .
+sudo docker build -it powwly-cli -f -f ./docker/client.Dockerfile .
+sudo docker build -it powwly -f -f ./docker/server.Dockerfile .
 
 ```
 
@@ -147,12 +147,12 @@ List of available commands
 ```go
 // Proto specification tags
 const (
-REQ = "REQ" // REQ - request challenge
-RES = "RES" // RES - request resource
-RSV  = "RSV" // RSV - response with payload
-OK = "OK"    // OK - command accepted
-ERR = "ERR"   // ERR - command err
-DISC = "DISC" // DISC - initialize close connection
+    REQ = "REQ" // REQ - request challenge
+    RES = "RES" // RES - request resource
+    RSV  = "RSV" // RSV - response with payload
+    OK = "OK"    // OK - command accepted
+    ERR = "ERR"   // ERR - command err
+    DISC = "DISC" // DISC - initialize close connection
 )
 
 ```
@@ -162,13 +162,15 @@ Format:
 
 Example:
 
-`REQ 11 |hello world`
-
-`ERR 18 |rcommand rinvalid`
-
-`RES 5 |<payload>`
-
-`RST 10 |<payload>`
+```sh
+--------------------------
+REQ 11 |hello world
+ERR 18 |rcommand rinvalid
+--------------------------
+RES 5 |<payload>
+RST 10 |<payload>
+--------------------------
+```
 
 
 
