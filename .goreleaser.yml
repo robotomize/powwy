@@ -29,6 +29,27 @@ builds:
     ldflags:
       - -s -w -X main.version={{.Version}} -extldflags '-static'
 
+archives:
+  - id: powwy-srv
+    builds:
+      - powwy-srv
+    name_template: "powwy-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      darwin: MacOSX
+      linux: Linux
+      windows: Windows
+      amd64: x86_64
+
+  - id: powwy-cli
+    builds:
+      - powwy-cli
+    name_template: "powwy-cli{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      darwin: MacOSX
+      linux: Linux
+      windows: Windows
+      amd64: x86_64
+
 checksum:
   name_template: 'checksums.txt'
 snapshot:
