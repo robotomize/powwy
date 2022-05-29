@@ -22,7 +22,7 @@ Install from local go toolkit [Go 1.18](https://go.dev/dl/)
     
 ```
 
-Or build manually
+or build manually
 
 ```sh
 make build
@@ -36,15 +36,13 @@ Docker install
 
 ```
 
-Or
+or
 
 ```sh
 sudo docker-compose up
 ```
 
 ## CLI
-
-Console utility powwy
 
 Find a solution to the HashCash header problem
 
@@ -53,9 +51,10 @@ powwy-cli compute <header1> <header2>
 ```
 
 ```sh
-Usage: powwy-cli compute <header> <header 2> <header n>
+Usage: powwy-cli compute <header> <header> <header>
 
 Usage:
+
 compute [flags]
 
 Flags:
@@ -70,17 +69,15 @@ Global Flags:
 Connect to powwy server and fetch quotes
 
 ```sh
-powwly-cli -a localhost:333
+powwly-cli -a localhost:3333
 ```
 
 ```sh
 Usage:
-[flags]
-[command]
 
 Available Commands:
 completion  Generate the autocompletion script for the specified shell
-compute     Usage: powwy-cli compute <header> <header 2> <header n>
+compute     Usage: powwy-cli compute <header> <header> <header>
 help        Help about any command
 
 Flags:

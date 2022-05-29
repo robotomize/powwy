@@ -12,7 +12,7 @@ on:
 jobs:
   build-tools:
     runs-on: ubuntu-latest
-    name: Unit test
+    name: Setup cache
     steps:
       - name: Cancel previous builds
         uses: styfle/cancel-workflow-action@0.7.0
@@ -39,7 +39,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    name: Unit test
+    name: Unit tests
     steps:
       - name: Cancel previous builds
         uses: styfle/cancel-workflow-action@0.7.0
@@ -63,7 +63,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-test-
             ${{ runner.os }}-go-
-      - name: Unit tests
+      - name: Make test cover
         run: make test-cover
 
       - name: Upload coverage report
