@@ -1,4 +1,5 @@
 # Powwy
+
 [![codebeat badge](https://codebeat.co/badges/a4a12b24-98e6-4627-b01c-8b124561f2e1)](https://codebeat.co/projects/github-com-robotomize-powwy-main)
 [![Build status](https://github.com/robotomize/powwy/actions/workflows/release.yml/badge.svg)](https://github.com/robotomize/powwy/actions)
 [![GitHub license](https://img.shields.io/github/license/robotomize/powwy.svg)](https://github.com/robotomize/powwy/blob/master/LICENSE)
@@ -37,6 +38,11 @@ Docker install
     sudo docker build -it powwly-cli -f -f ./docker/client.Dockerfile .
     sudo docker build -it powwly -f -f ./docker/server.Dockerfile .
 
+```
+
+```sh
+docker pull robotomize/powwy-cli:latest
+dicjer pull robotomize/powwy-srv:tagname
 ```
 
 or
@@ -141,12 +147,12 @@ List of available commands
 ```go
 // Proto specification tags
 const (
-    REQ = "REQ" // REQ - request challenge
-    RES = "RES" // RES - request resource
-    RSV  = "RSV" // RSV - response with payload
-    OK = "OK"    // OK - command accepted
-    ERR = "ERR"   // ERR - command err
-    DISC = "DISC" // DISC - initialize close connection
+REQ = "REQ" // REQ - request challenge
+RES = "RES" // RES - request resource
+RSV  = "RSV" // RSV - response with payload
+OK = "OK"    // OK - command accepted
+ERR = "ERR"   // ERR - command err
+DISC = "DISC" // DISC - initialize close connection
 )
 
 ```
@@ -159,7 +165,6 @@ Example:
 `REQ 11 |hello world`
 
 `ERR 18 |rcommand rinvalid`
-
 
 `RES 5 |<payload>`
 
