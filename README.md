@@ -20,38 +20,44 @@ The client receives the problem, solves it, and receives a quote from Words of w
 
 Install from local go toolkit [Go 1.18](https://go.dev/dl/)
 
+### Go install
 ```sh
 go install ./cmd/powwy-srv
 go install ./cmd/powwy-cli
     
 ```
 
-or build manually
+### Make build
 
 ```sh
 make build
 ```
 
-Docker install
+### Docker install
 
 ```sh
-sudo docker build -it powwly-cli -f -f ./docker/client.Dockerfile .
-sudo docker build -it powwly -f -f ./docker/server.Dockerfile .
+sudo docker build -it powwy-cli -f ./docker/client.Dockerfile .
+sudo docker build -it powwy -f ./docker/server.Dockerfile .
 
+sudo docker run powwy --net=host -p 3333:3333
+sudo docker run powwy-cli -a localhost:3333 -d // infinite loop
+
+sudo docker run powwy-cli compute <header>
 ```
 
+From docker hub
 ```sh
 docker pull robotomize/powwy-cli:latest
-dicjer pull robotomize/powwy-srv:tagname
+docker pull robotomize/powwy-srv:latest
 ```
 
-or
+### Docker compose
 
 ```sh
 sudo docker-compose up
 ```
 
-## CLI
+## CLI powwy
 
 Find a solution to the HashCash header problem
 
@@ -108,10 +114,10 @@ Use " [command] --help" for more information about a command.
 The [http://www.hashcash.org/](HashCash) algorithm was chosen to implement the proof of work mechanism
 
 Pros:
-
 * Easy to find description
 * Easy to implement
-  Cons:
+
+Cons:
 * Difficult to adjust the difficulty of the task
 
 ### Implementing the header
@@ -133,10 +139,10 @@ Pros:
 [Merkle in ethereum](https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/)
 
 Pros:
+  Works great for decentralized applications
 
-* Works great for decentralized applications
-  Cons:
-* Not very suitable for the implementation of client-server applications
+Cons:
+  Not very suitable for the implementation of client-server applications
 
 ## Protocol
 
@@ -159,17 +165,29 @@ const (
 
 Format:
 `<Command> <body length> |<body>`
+or
+`<Command>`
 
 Example:
 
 ```sh
---------------------------
-REQ 11 |hello world
-ERR 18 |rcommand rinvalid
---------------------------
-RES 5 |<payload>
-RST 10 |<payload>
---------------------------
+---------------------------------------------------------------------------------------------------------------
+UNKNOWN_COMMAND
+ERR 18 |command wrong
+---------------------------------------------------------------------------------------------------------------
+REQ
+ERR 21 |internal server error
+---------------------------------------------------------------------------------------------------------------
+REQ
+RSR 62 |1:5:1665396610:localhost:sha-256:vZOxuoIgixP+hw==:AAAAAAAAAAA=
+---------------------------------------------------------------------------------------------------------------
+RES 62 |1:5:1665396610:localhost:sha-256:vZOxuoIgixP+hw==:FxUQAAAAAAA=
+RST 139 |Voice is not just the sound that comes from your throat, but the feelings that come from your words.
+― Jennifer Donnelly, A Northern Light
+---------------------------------------------------------------------------------------------------------------
+DISC
+OK
+---------------------------------------------------------------------------------------------------------------
 ```
 
 
