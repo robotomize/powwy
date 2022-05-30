@@ -89,30 +89,38 @@ func (c *Client) SendREQ(ctx context.Context) (hashcash.Header, error) {
 		return hashcash.Header{}, fmt.Errorf("send req: %w", err)
 	}
 
-	request := <-c.inbound
-	if request.Cmd == proto.ERR {
-		return hashcash.Header{}, ProtError{
-			OriginMessage: request,
-			Message:       string(request.Body),
+	select {
+	case <-ctx.Done():
+		return hashcash.Header{}, fmt.Errorf("ctx done: %w", ctx.Err())
+	case request, ok := <-c.inbound:
+		if !ok {
+			return hashcash.Header{}, fmt.Errorf("server unexpectedly closed connection")
 		}
-	}
 
-	if request.Cmd != proto.RSV {
-		return hashcash.Header{}, ProtError{
-			OriginMessage: request,
-			Message:       ErrWrongAnswer.Error(),
+		if request.Cmd == proto.ERR {
+			return hashcash.Header{}, ProtError{
+				OriginMessage: request,
+				Message:       string(request.Body),
+			}
 		}
-	}
 
-	header, err := hashcash.Parse(string(request.Body))
-	if err != nil {
-		return hashcash.Header{}, ProtError{
-			OriginMessage: request,
-			Message:       ErrWongPayload.Error(),
+		if request.Cmd != proto.RSV {
+			return hashcash.Header{}, ProtError{
+				OriginMessage: request,
+				Message:       ErrWrongAnswer.Error(),
+			}
 		}
-	}
 
-	return header, nil
+		header, err := hashcash.Parse(string(request.Body))
+		if err != nil {
+			return hashcash.Header{}, ProtError{
+				OriginMessage: request,
+				Message:       ErrWongPayload.Error(),
+			}
+		}
+
+		return header, nil
+	}
 }
 
 func (c *Client) SendRES(ctx context.Context, msg string) ([]byte, error) {
@@ -124,22 +132,30 @@ func (c *Client) SendRES(ctx context.Context, msg string) ([]byte, error) {
 		return nil, fmt.Errorf("send req: %w", err)
 	}
 
-	request := <-c.inbound
-	if request.Cmd == proto.ERR {
-		return nil, ProtError{
-			OriginMessage: request,
-			Message:       string(request.Body),
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("ctx done: %w", ctx.Err())
+	case request, ok := <-c.inbound:
+		if !ok {
+			return nil, fmt.Errorf("server unexpectedly closed connection")
 		}
-	}
 
-	if request.Cmd != proto.RSV {
-		return nil, ProtError{
-			OriginMessage: request,
-			Message:       ErrWrongAnswer.Error(),
+		if request.Cmd == proto.ERR {
+			return nil, ProtError{
+				OriginMessage: request,
+				Message:       string(request.Body),
+			}
 		}
-	}
 
-	return request.Body, nil
+		if request.Cmd != proto.RSV {
+			return nil, ProtError{
+				OriginMessage: request,
+				Message:       ErrWrongAnswer.Error(),
+			}
+		}
+
+		return request.Body, nil
+	}
 }
 
 func (c *Client) SendDISC(ctx context.Context) error {
@@ -150,18 +166,26 @@ func (c *Client) SendDISC(ctx context.Context) error {
 		return fmt.Errorf("send req: %w", err)
 	}
 
-	request := <-c.inbound
-	if request.Cmd == proto.ERR {
-		return ProtError{
-			OriginMessage: request,
-			Message:       string(request.Body),
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("ctx done: %w", ctx.Err())
+	case request, ok := <-c.inbound:
+		if !ok {
+			return fmt.Errorf("server unexpectedly closed connection")
 		}
-	}
 
-	if request.Cmd != proto.OK {
-		return ProtError{
-			OriginMessage: request,
-			Message:       ErrWrongAnswer.Error(),
+		if request.Cmd == proto.ERR {
+			return ProtError{
+				OriginMessage: request,
+				Message:       string(request.Body),
+			}
+		}
+
+		if request.Cmd != proto.OK {
+			return ProtError{
+				OriginMessage: request,
+				Message:       ErrWrongAnswer.Error(),
+			}
 		}
 	}
 

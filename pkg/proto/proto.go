@@ -120,7 +120,7 @@ func (t *ResponseWriter) ReadAll(ctx context.Context) error {
 
 			return fmt.Errorf("bufio.NewReader().ReadBytes: %w", err)
 		}
-		fmt.Print(string(b))
+
 		msg, err := t.parse(b)
 		if err != nil {
 			_, _ = t.SendErr(err.Error())
