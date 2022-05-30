@@ -33,6 +33,7 @@ jobs:
             ${{ runner.os }}-go-
 
   test:
+    needs: build-tools
     runs-on: ubuntu-latest
     name: Unit tests
     steps:
@@ -67,6 +68,7 @@ jobs:
           file: ./coverage.out
 
   lint:
+    needs: build-tools
     runs-on: ubuntu-latest
     steps:
       - name: Cancel previous builds
@@ -101,7 +103,9 @@ jobs:
 
 
   build-binary:
-    needs: lint
+    needs:
+      - lint
+      - test
     runs-on: ubuntu-latest
 
     steps:
@@ -145,7 +149,7 @@ jobs:
 
   docker-push:
     runs-on: ubuntu-latest
-
+    needs: build-binary
     steps:
       - name: Cancel previous builds
         uses: styfle/cancel-workflow-action@0.7.0

@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "*"
   pull_request:
     branches:
       - main
@@ -38,6 +36,7 @@ jobs:
             ${{ runner.os }}-go-
 
   test:
+    needs: build-tools
     runs-on: ubuntu-latest
     name: Unit tests
     steps:
@@ -72,6 +71,7 @@ jobs:
           file: ./coverage.out
 
   lint:
+    needs: build-tools
     runs-on: ubuntu-latest
     steps:
       - name: Cancel previous builds
