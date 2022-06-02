@@ -46,20 +46,16 @@ func (c *Client) Connect(ctx context.Context) error {
 }
 
 func (c *Client) connect(ctx context.Context) error {
-	var err error
-	c.Once.Do(func() {
-		conn, dialErr := net.Dial(c.config.Network, c.config.Addr)
-		if dialErr != nil {
-			err = dialErr
-			return
-		}
+	conn, err := net.Dial(c.config.Network, c.config.Addr)
+	if err != nil {
+		return fmt.Errorf("net.Dial: %w", err)
+	}
 
-		c.rw = proto.NewResponseWriter(conn)
+	c.rw = proto.NewResponseWriter(conn)
 
-		go c.read(ctx)
-	})
+	go c.read(ctx)
 
-	return err
+	return nil
 }
 
 func (c *Client) read(ctx context.Context) {

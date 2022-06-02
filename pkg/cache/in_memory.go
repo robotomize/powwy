@@ -53,6 +53,15 @@ func (c *Cache[T]) Set(name string, object T) error {
 	return nil
 }
 
+func (c *Cache[T]) Delete(name string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	delete(c.data, name)
+
+	return nil
+}
+
 func (c *Cache[T]) lookup(name string) (T, bool) {
 	var nilT T
 	if item, ok := c.data[name]; ok && item.expired() {

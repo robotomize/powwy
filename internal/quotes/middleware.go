@@ -13,6 +13,7 @@ var (
 	ErrUnknownNonce     = errors.New("nonce not found or header expired")
 	ErrHeaderValidation = errors.New("header invalid")
 	ErrHashWrong        = errors.New("hash wrong")
+	ErrInternalServer   = errors.New("internal server")
 )
 
 func PoWMiddleware(next server.HandleFunc, s Store) server.HandleFunc {
@@ -83,6 +84,14 @@ func PoWMiddleware(next server.HandleFunc, s Store) server.HandleFunc {
 				logger.Errorf("send err: %v", err)
 				return
 			}
+		}
+
+		if err = s.Delete(header.Nonce); err != nil {
+			if _, err = w.SendErr(ErrInternalServer.Error()); err != nil {
+				logger.Errorf("send err: %v", err)
+			}
+
+			return
 		}
 
 		next(r, w)
