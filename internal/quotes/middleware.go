@@ -1,7 +1,10 @@
 package quotes
 
 import (
+	"bytes"
 	"errors"
+	"hash"
+	"time"
 
 	"github.com/robotomize/powwy/internal/logging"
 	"github.com/robotomize/powwy/internal/server"
@@ -10,18 +13,28 @@ import (
 )
 
 var (
-	ErrUnknownNonce     = errors.New("nonce not found or header expired")
+	ErrUnknownNonce     = errors.New("nonce not found")
 	ErrHeaderValidation = errors.New("header invalid")
 	ErrHashWrong        = errors.New("hash wrong")
-	ErrInternalServer   = errors.New("internal server")
+	ErrTokenWrong       = errors.New("token wrong")
+	ErrHeaderExpired    = errors.New("header expired")
 )
 
-func PoWMiddleware(next server.HandleFunc, s Store) server.HandleFunc {
+func PoWMiddleware(next server.HandleFunc, hashFn func() hash.Hash, generateTokenFn GenerateTokenFunc) server.HandleFunc {
 	return func(r proto.Request, w *proto.ResponseWriter) {
 		ctx := r.Context()
 		logger := logging.FromContext(ctx).Named("PoWMiddleware")
 
-		header, err := hashcash.Parse(string(r.Body))
+		contents := bytes.Split(r.Body, []byte("\n"))
+		if len(contents) < 2 {
+			if _, err := w.SendErr(ErrUnknownNonce.Error()); err != nil {
+				logger.Errorf("send err: %v", err)
+			}
+
+			return
+		}
+
+		header, err := hashcash.Parse(string(contents[1]))
 		if err != nil {
 			if _, err = w.SendErr(ErrHeaderValidation.Error()); err != nil {
 				logger.Errorf("send err: %v", err)
@@ -30,49 +43,17 @@ func PoWMiddleware(next server.HandleFunc, s Store) server.HandleFunc {
 			return
 		}
 
-		originHeader, ok := s.Lookup(header.Nonce)
-		if !ok {
-			if _, err = w.SendErr(ErrUnknownNonce.Error()); err != nil {
+		if string(contents[0]) != generateTokenFn(hashFn, header) {
+			if _, err = w.SendErr(ErrTokenWrong.Error()); err != nil {
 				logger.Errorf("send err: %v", err)
 			}
 
 			return
 		}
 
-		if originHeader.Alg != header.Alg {
-			if _, err = w.SendErr(ErrHeaderValidation.Error()); err != nil {
-				logger.Errorf("send err: %v", err)
-			}
-
-			return
-		}
-
-		if originHeader.Difficult != header.Difficult {
-			if _, err = w.SendErr(ErrHeaderValidation.Error()); err != nil {
-				logger.Errorf("send err: %v", err)
-			}
-
-			return
-		}
-
-		if originHeader.Version != header.Version {
-			if _, err = w.SendErr(ErrHeaderValidation.Error()); err != nil {
-				logger.Errorf("send err: %v", err)
-			}
-
-			return
-		}
-
-		if originHeader.Subject != header.Subject {
-			if _, err = w.SendErr(ErrHeaderValidation.Error()); err != nil {
-				logger.Errorf("send err: %v", err)
-			}
-
-			return
-		}
-
-		if originHeader.ExpiredAt != header.ExpiredAt {
-			if _, err = w.SendErr(ErrHeaderValidation.Error()); err != nil {
+		t := time.Unix(header.ExpiredAt, 0)
+		if !time.Now().Before(t) {
+			if _, err = w.SendErr(ErrHeaderExpired.Error()); err != nil {
 				logger.Errorf("send err: %v", err)
 			}
 
@@ -84,14 +65,6 @@ func PoWMiddleware(next server.HandleFunc, s Store) server.HandleFunc {
 				logger.Errorf("send err: %v", err)
 				return
 			}
-		}
-
-		if err = s.Delete(header.Nonce); err != nil {
-			if _, err = w.SendErr(ErrInternalServer.Error()); err != nil {
-				logger.Errorf("send err: %v", err)
-			}
-
-			return
 		}
 
 		next(r, w)

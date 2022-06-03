@@ -37,13 +37,12 @@ We need to learn how to let it wash over us, without drowning in it. Our life do
 ― Happy Positivity`,
 }
 
-func NewQuotes(config Config, s Store) *Quotes {
-	return &Quotes{config: config, store: s}
+func NewQuotes(config Config) *Quotes {
+	return &Quotes{config: config}
 }
 
 type Quotes struct {
 	config Config
-	store  Store
 }
 
 func (a *Quotes) MakeChallenge(subject string) (hashcash.Header, error) {
@@ -51,12 +50,6 @@ func (a *Quotes) MakeChallenge(subject string) (hashcash.Header, error) {
 	header, err := hashcash.Default(subject, a.config.HashCashDifficult, expired)
 	if err != nil {
 		return hashcash.Header{}, fmt.Errorf("hashcash.Default: %w", err)
-	}
-
-	if err = a.store.Set(header.Nonce, header); err != nil {
-		return hashcash.Header{}, fmt.Errorf(
-			"store set key: %s, value: %s %w", header.Nonce, header.String(), err,
-		)
 	}
 
 	return header, nil

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -76,54 +77,54 @@ func (c *Client) read(ctx context.Context) {
 	}
 }
 
-func (c *Client) SendREQ(ctx context.Context) (hashcash.Header, error) {
-	if err := c.connect(ctx); err != nil {
-		return hashcash.Header{}, err
-	}
-
+func (c *Client) SendREQ(ctx context.Context) ([]byte, hashcash.Header, error) {
 	if _, err := c.rw.SendREQ(); err != nil {
-		return hashcash.Header{}, fmt.Errorf("send req: %w", err)
+		return nil, hashcash.Header{}, fmt.Errorf("send req: %w", err)
 	}
 
 	select {
 	case <-ctx.Done():
-		return hashcash.Header{}, fmt.Errorf("ctx done: %w", ctx.Err())
+		return nil, hashcash.Header{}, fmt.Errorf("ctx done: %w", ctx.Err())
 	case request, ok := <-c.inbound:
 		if !ok {
-			return hashcash.Header{}, fmt.Errorf("server unexpectedly closed connection")
+			return nil, hashcash.Header{}, fmt.Errorf("server unexpectedly closed connection")
 		}
 
 		if request.Cmd == proto.ERR {
-			return hashcash.Header{}, ProtError{
+			return nil, hashcash.Header{}, ProtError{
 				OriginMessage: request,
 				Message:       string(request.Body),
 			}
 		}
 
 		if request.Cmd != proto.RSV {
-			return hashcash.Header{}, ProtError{
+			return nil, hashcash.Header{}, ProtError{
 				OriginMessage: request,
 				Message:       ErrWrongAnswer.Error(),
 			}
 		}
 
-		header, err := hashcash.Parse(string(request.Body))
+		contents := bytes.Split(request.Body, []byte("\n"))
+		if len(contents) < 2 {
+			return nil, hashcash.Header{}, ProtError{
+				OriginMessage: request,
+				Message:       ErrWrongAnswer.Error(),
+			}
+		}
+
+		header, err := hashcash.Parse(string(contents[1]))
 		if err != nil {
-			return hashcash.Header{}, ProtError{
+			return nil, hashcash.Header{}, ProtError{
 				OriginMessage: request,
 				Message:       ErrWongPayload.Error(),
 			}
 		}
 
-		return header, nil
+		return contents[0], header, nil
 	}
 }
 
 func (c *Client) SendRES(ctx context.Context, msg string) ([]byte, error) {
-	if err := c.connect(ctx); err != nil {
-		return nil, err
-	}
-
 	if _, err := c.rw.SendRES(msg); err != nil {
 		return nil, fmt.Errorf("send req: %w", err)
 	}

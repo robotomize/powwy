@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/robotomize/powwy/internal/client"
@@ -50,6 +52,10 @@ var rootCmd = &cobra.Command{
 			},
 		)
 
+		if err := c.Connect(ctx); err != nil {
+			logger.Fatal(err)
+		}
+
 		if dos {
 			for {
 				msg, info, err := try(ctx, c, opts...)
@@ -78,7 +84,7 @@ var rootCmd = &cobra.Command{
 }
 
 func try(ctx context.Context, c *client.Client, opts ...hashcash.PoolOption) (string, hashcash.PoolInfo, error) {
-	header, err := c.SendREQ(ctx)
+	token, header, err := c.SendREQ(ctx)
 	if err != nil {
 		return "", hashcash.PoolInfo{}, err
 	}
@@ -88,7 +94,10 @@ func try(ctx context.Context, c *client.Client, opts ...hashcash.PoolOption) (st
 		return "", hashcash.PoolInfo{}, err
 	}
 
-	text, err := c.SendRES(ctx, info.Header.String())
+	buf := &strings.Builder{}
+	_, _ = fmt.Fprintf(buf, "%s\n%s", token, info.Header.String())
+
+	text, err := c.SendRES(ctx, buf.String())
 	if err != nil {
 		return "", hashcash.PoolInfo{}, err
 	}

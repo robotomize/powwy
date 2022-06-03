@@ -2,13 +2,13 @@ package setup
 
 import (
 	"context"
+	"crypto/md5" //nolint
 	"fmt"
+	"hash"
 	"net"
 
 	"github.com/robotomize/powwy/internal/quotes"
 	"github.com/robotomize/powwy/internal/server"
-	"github.com/robotomize/powwy/pkg/cache"
-	"github.com/robotomize/powwy/pkg/hashcash"
 	"github.com/robotomize/powwy/pkg/proto"
 	"github.com/sethvargo/go-envconfig"
 )
@@ -24,12 +24,11 @@ func Setup(ctx context.Context) (Environment, error) {
 		return env, fmt.Errorf("env processing: %w", err)
 	}
 
-	s, err := cache.New[hashcash.Header](config.Quotes.HashCashExpiredDuration)
-	if err != nil {
-		return env, fmt.Errorf("cache.New: %w", err)
-	}
-
-	handler := quotes.NewHandler(quotes.NewQuotes(config.Quotes, s))
+	handler := quotes.NewHandler(
+		quotes.NewQuotes(config.Quotes), func() hash.Hash {
+			return md5.New()
+		}, quotes.GenerateToken,
+	)
 
 	l, err := net.Listen(config.Server.Network, config.Server.Addr)
 	if err != nil {
@@ -42,7 +41,11 @@ func Setup(ctx context.Context) (Environment, error) {
 	}
 
 	srv.HandleFunc(proto.REQ, handler.ReqChallenge)
-	srv.HandleFunc(proto.RES, quotes.PoWMiddleware(handler.GetResource, s))
+	srv.HandleFunc(
+		proto.RES, quotes.PoWMiddleware(handler.GetResource, func() hash.Hash {
+			return md5.New()
+		}, quotes.GenerateToken),
+	)
 
 	env.Server = srv
 

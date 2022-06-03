@@ -1,19 +1,23 @@
 package quotes
 
 import (
+	"fmt"
+
 	"github.com/robotomize/powwy/internal/logging"
 	"github.com/robotomize/powwy/internal/server"
 	"github.com/robotomize/powwy/pkg/proto"
 )
 
-func NewHandler(quotes *Quotes) *Handler {
-	return &Handler{quotes: quotes}
+func NewHandler(quotes *Quotes, f HashFunc, g GenerateTokenFunc) *Handler {
+	return &Handler{quotes: quotes, generateTokenFn: g, hashFn: f}
 }
 
 const defaultClientAddr = "localhost"
 
 type Handler struct {
-	quotes *Quotes
+	quotes          *Quotes
+	hashFn          HashFunc
+	generateTokenFn GenerateTokenFunc
 }
 
 func (h *Handler) ReqChallenge(r proto.Request, w *proto.ResponseWriter) {
@@ -29,11 +33,17 @@ func (h *Handler) ReqChallenge(r proto.Request, w *proto.ResponseWriter) {
 		logger.Errorf("MakeChallenge: %v", err)
 		if _, err = w.SendErr(server.ErrInternalServer.Error()); err != nil {
 			logger.Errorf("send err: %v", err)
+
 			return
 		}
 	}
 
-	if _, err = w.SendRSV(challenge.String()); err != nil {
+	b, cancel := GetBuilder()
+	defer cancel()
+
+	_, _ = fmt.Fprintf(b, "%s\n%s", h.generateTokenFn(h.hashFn, challenge), challenge.String())
+
+	if _, err = w.SendRSV(b.String()); err != nil {
 		logger.Errorf("send rsv: %v", err)
 	}
 }
