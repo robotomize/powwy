@@ -179,9 +179,11 @@ REQ
 ERR 21 |internal server error
 ---------------------------------------------------------------------------------------------------------------
 REQ
-RSR 62 |1:5:1665396610:localhost:sha-256:vZOxuoIgixP+hw==:AAAAAAAAAAA=
+RSR 62 |<token>
+1:5:1665396610:localhost:sha-256:vZOxuoIgixP+hw==:AAAAAAAAAAA=
 ---------------------------------------------------------------------------------------------------------------
-RES 62 |1:5:1665396610:localhost:sha-256:vZOxuoIgixP+hw==:FxUQAAAAAAA=
+RES 62 |<token>
+1:5:1665396610:localhost:sha-256:vZOxuoIgixP+hw==:FxUQAAAAAAA=
 RST 139 |Voice is not just the sound that comes from your throat, but the feelings that come from your words.
 ― Jennifer Donnelly, A Northern Light
 ---------------------------------------------------------------------------------------------------------------
